@@ -2,35 +2,72 @@
 
 const express= require("express");
 const bodyParser = require("body-parser");
-
+const mongoose= require("mongoose");
 const app= express();
-let items=["CookFood", "GetVegetables"];
+
 app.set('view engine', "ejs");
 
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(express.static("public"));
+
+mongoose.connect("mongodb://localhost:27017/todolistDB",{  useUnifiedTopology: true,
+useNewUrlParser: true});
+
+const itemsSchema = new mongoose.Schema({
+          name: String,
+});
+
+const Item = mongoose.model("item",itemsSchema);
+
+const Item1= new Item({
+    name : "Cooking"
+});
+
+const Item2 = new Item({
+    name :"Welcome to To dO LIST "
+});
+const Item3 = new Item({
+    name : "Listen Class"
+});
+
+
+
 app.get("/",function(req,res){
-    let today = new Date();
-    let options = {
-        weekday:"long",
-        day:"numeric",
-        month:"long"
-    };
 
-    let day=today.toLocaleDateString("en-US",options);
+   Item.find({},function(err,founditems){
 
-       res.render("list",{
-           kindOfDay:day,
-           newListItems: items
-        });
+    if(founditems.length===0){
+       
+        Item.insertMany(defaultItems,function(err){
+            if(err){
+                console.log("its's error");
+            }else{
+                console.log("Succesful");
+            }
+        
+        }); 
+          res.redirect("/");
+    }else{
+        res.render("list",{kindOfDay:"Today",newListItems: founditems  });
+    }
+   
+   });
+      
     
 });
+     
 
-app.post("/",function(req,res){
-    let item=req.body.newItem;
-    items.push(item);
+ app.post("/",function(req,res){
+    let itemName =req.body.newItem;
+    const item = new Item({
+        name: itemName
+    });
+
+    item.save();
+
     res.redirect("/");
-});
+
+}); 
 
 app.get("/about",function(req,res){
     res.render("about");
