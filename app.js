@@ -30,7 +30,14 @@ const Item3 = new Item({
     name : "Listen Class"
 });
 
+const defaultItems = [Item1,Item2,Item3];
 
+const listSchema={
+    name:String,
+    items:[itemsSchema],
+};
+
+const List =mongoose.model('List',listSchema);
 
 app.get("/",function(req,res){
 
@@ -79,6 +86,23 @@ app.post("/delete",function(req,res){
             res.redirect("/");
         }
     });
+});
+
+app.get("/:customListName",function(req,res){
+    const customListName=(req.params.customListName);
+    List.findOne({name:customListName},function(err, foundlist){
+        if(!err){
+            if(!foundlist){
+                console.log("Doesn't exist");
+            }else{
+                console.log("Exists");
+            }
+        };
+    const list=new List({
+        name :customListName,
+        items: defaultItems,
+    });
+    //list.save();
 });
 
 app.get("/about",function(req,res){
